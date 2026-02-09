@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "./firebase";
 import { Navigate } from "react-router-dom";
 
 export default function AuthGate({ children }) {
