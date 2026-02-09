@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AuthGate from "./AuthGate";
+import JoinOrganization from "./pages/JoinOrganization";
+
 <Route 
   path="/dashboard"
   element={
@@ -10,6 +12,9 @@ import AuthGate from "./AuthGate";
     </AuthGate>
   }
 />
+
+<Route path="/join" element={<JoinOrganization />} />
+
 export default function App() {
   return (
     <Routes>
