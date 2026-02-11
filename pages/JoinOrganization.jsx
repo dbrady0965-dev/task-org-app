@@ -29,6 +29,7 @@ export default function JoinOrganization() {
       await setDoc(doc(db, "users", auth.currentUser.uid), {
         orgId: code,
         email: auth.currentUser.email,
+        role: "user"
       });
 
       console.log("Org saved. Redirecting.");

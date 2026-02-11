@@ -40,11 +40,13 @@ export default function AdminTaskCreate({ orgId }) {
       return;
     }
 
+    console.log("ASSIGNED USERS AT SAVE:", assignedUserIds);
+
     await addDoc(collection(db, "tasks"), {
       orgId,
       title,
       schedule,
-      assignedUserIds: [],
+      assignedUserIds,
       completedBy: [],
       createdAt: serverTimestamp()
     });
