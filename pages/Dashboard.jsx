@@ -4,38 +4,92 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import AdminTaskCreate from "../components/AdminTaskCreate";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [userProfile, setUserProfile] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+   
 
   useEffect(() => {
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        setLoading(false);
+        navigate("/");
         return;
       }
 
-      const snap = await getDoc(doc(db, "users", user.uid));
-      setUserProfile(snap.data());
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const profile = userSnap.data();
+      setUserProfile(profile);
+      
+      const q = query(
+        collection(db, "tasks"),
+        where("orgId", "==", profile.orgId)
+      );
+
+      const taskSnap = await getDocs(q);
+      const taskList = taskSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      const filteredTasks =
+  profile.role === "admin"
+    ? taskList
+    : taskList.filter(task =>
+        task.assignedUserIds.includes(user.uid)
+      );
+
+      setTasks(filteredTasks);
       setLoading(false);
     });
 
+  
+    
     return () => unsubscribe();
   }, []);
+
+    const handleLogout = async () => {
+      await signOut(auth);
+};
+
 
   if (loading) return <p>Loading...</p>;
   if (!userProfile) return <p>No profile found</p>;
 
+  
   return (
     <div>
+      <button onClick={handleLogout}>
+  Log out
+</button>
+
       <h1>Dashboard</h1>
 
       {userProfile.role === "admin" && (
         <AdminTaskCreate orgId={userProfile.orgId} />
       )}
+
+      <h2>Your Tasks</h2>
+
+{tasks.length === 0 && <p>No tasks yet</p>}
+
+<ul>
+  {tasks.map(task => (
+    <li key={task.id}>
+      <strong>{task.title}</strong> — {task.schedule}
+    </li>
+  ))}
+</ul>
+
     </div>
   );
+  
 }
 
 
