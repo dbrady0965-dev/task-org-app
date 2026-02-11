@@ -22,7 +22,7 @@ export default function AdminTaskCreate({ orgId }) {
 
     console.log("ORG ID:", orgId);
     console.log("USERS FOUND:", snap.size);
-    
+
     const userList = snap.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -45,6 +45,7 @@ export default function AdminTaskCreate({ orgId }) {
       title,
       schedule,
       assignedUserIds: [],
+      completedBy: [],
       createdAt: serverTimestamp()
     });
 

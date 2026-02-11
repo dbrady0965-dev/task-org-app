@@ -6,6 +6,7 @@ import AdminTaskCreate from "../components/AdminTaskCreate";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export default function Dashboard() {
   const [userProfile, setUserProfile] = useState(null);
@@ -13,10 +14,37 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+
+    const toggleComplete = async (task) => {
+      const userId = auth.currentUser.uid;
+      const taskRef = doc(db,"tasks", task.id);
+
+      const isCompleted = task.completedBy?.includes(userId);
+
+      await updateDoc(taskRef, {
+        completedBy: isCompleted? arrayRemove(userId)
+        : arrayUnion(userId)
+      });
+
+      // Uppdate UI
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === task.id? {
+            ...t,
+            completedBy: isCompleted? t.completedBy.filter(id => id !== userId)
+            : [...(t.completedBy || []), userId]
+          }
+          :t
+        )
+      );
+    };
+  
+  
    
 
   useEffect(() => {
 
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         navigate("/");
@@ -49,7 +77,7 @@ export default function Dashboard() {
       setLoading(false);
     });
 
-  
+    
     
     return () => unsubscribe();
   }, []);
@@ -82,7 +110,14 @@ export default function Dashboard() {
 <ul>
   {tasks.map(task => (
     <li key={task.id}>
-      <strong>{task.title}</strong> — {task.schedule}
+      <label>
+        <input 
+          type="checkbox"
+          checked={task.completedBy?.includes(auth.currentUser.uid)}
+          onChange={() => toggleComplete(task)}
+          />
+          <strong>{task.title}</strong> - {task.schedule}
+        </label>
     </li>
   ))}
 </ul>
