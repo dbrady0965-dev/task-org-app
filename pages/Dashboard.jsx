@@ -7,9 +7,10 @@ import {doc, getDoc } from "firebase/firestore";
 
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  return <h1>Dashboard</h1>;
+}
 
+/*
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -25,8 +26,34 @@ export default function Dashboard() {
   <button onClick={() => signOut(auth)}>Logout</button>
   </div>
   );
-}
 
+  const loadUser = async () => {
+    const ref = doc(db, "users", auth.currentUser.uid);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      navigate("/join");
+      return;
+    }
+
+    const userData = snap.data();
+
+    if (!userData.orId) {
+      navigate("/join");
+      return;
+    }
+
+    setLoading(false);
+  };
+
+  loadUser();
+ [navigate];
+
+if (loading) return <p>Loading...</p>;
+
+return <h1>Dashboard</h1>;
+};
+*/
 
 
 
