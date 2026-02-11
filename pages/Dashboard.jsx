@@ -1,24 +1,31 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { signOut } from "firebase/auth";
-import {doc, getDoc } from "firebase/firestore";
 import AdminTaskCreate from "../components/AdminTaskCreate";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function Dashboard() {
   const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
-      setUserProfile(snap.data());
-    };
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-    loadProfile();
+      const snap = await getDoc(doc(db, "users", user.uid));
+      setUserProfile(snap.data());
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  if (!userProfile) return <p>Loading...</p>;
+  if (loading) return <p>Loading...</p>;
+  if (!userProfile) return <p>No profile found</p>;
 
   return (
     <div>
@@ -30,6 +37,7 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
 /*
   useEffect(() => {
