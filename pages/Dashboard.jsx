@@ -4,10 +4,31 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import {doc, getDoc } from "firebase/firestore";
-
+import AdminTaskCreate from "../components/AdminTaskCreate";
 
 export default function Dashboard() {
-  return <h1>Dashboard</h1>;
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      setUserProfile(snap.data());
+    };
+
+    loadProfile();
+  }, []);
+
+  if (!userProfile) return <p>Loading...</p>;
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+
+      {userProfile.role === "admin" && (
+        <AdminTaskCreate orgId={userProfile.orgId} />
+      )}
+    </div>
+  );
 }
 
 /*

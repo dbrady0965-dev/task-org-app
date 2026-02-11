@@ -1,28 +1,58 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 export default function JoinOrganization() {
   const [code, setCode] = useState("");
   const navigate = useNavigate();
 
-  const submit = async () => {
-    await setDoc(doc(db, "users", auth.currentUser.uid), {
-      orgId: code,
-    });
-    navigate("/dashboard");
+  const submitOrg = async () => {
+    if (!code) {
+      alert("Enter organization code");
+      return;
+    }
+
+    console.log("Checking org:", code);
+
+    try {
+      const orgRef = doc(db, "Organizations", code);
+      const orgSnap = await getDoc(orgRef);
+
+      console.log("Org exists?", orgSnap.exists());
+
+      if (!orgSnap.exists()) {
+        alert("Organization not found");
+        return;
+      }
+
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        orgId: code,
+        email: auth.currentUser.email,
+      });
+
+      console.log("Org saved. Redirecting.");
+      navigate("/dashboard");
+
+    } catch (err) {
+      console.error("Error:", err);
+    }
   };
 
   return (
-    <div>
-      <h1>Join Organization</h1>
+    <div style={{ padding: "2rem" }}>
+      <h1>Enter Organization Code</h1>
+
       <input
-        placeholder="Org Code"
         value={code}
         onChange={(e) => setCode(e.target.value)}
+        placeholder="Organization Code"
       />
-      <button onClick={submit}>Continue</button>
+
+      <button type="button" onClick={submitOrg}>
+        Join
+      </button>
     </div>
   );
 }
+
